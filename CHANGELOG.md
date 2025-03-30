@@ -1,3 +1,24 @@
+## [6.7.16](https://github.com/iamrony777/Baileys/compare/v6.7.9-2...v6.7.16) (2025-03-30)
+
+
+### Bug Fixes
+
+* migrating to @cacheable/node-cache as it is maintained ([#1074](https://github.com/iamrony777/Baileys/issues/1074)) ([588de6c](https://github.com/iamrony777/Baileys/commit/588de6ce10f74f9d68fd834cbc44cf2a7ba9378e))
+* resolve DataView constructor error in lt-hash ([#1279](https://github.com/iamrony777/Baileys/issues/1279)) ([af17232](https://github.com/iamrony777/Baileys/commit/af17232611702b98274a52d0ff88f828c56afa5a))
+* sending SERVER_ACK to messages.update ([#1101](https://github.com/iamrony777/Baileys/issues/1101)) ([cfbfcd8](https://github.com/iamrony777/Baileys/commit/cfbfcd8e14dd3d62cfa6c9e9fa45408e7f29ca16))
+* **sync:** complete unfinished async implementation ([fccca8a](https://github.com/iamrony777/Baileys/commit/fccca8ab309ef729d182bc7212bc2d2642af2882)), closes [#1286](https://github.com/iamrony777/Baileys/issues/1286)
+* typo on doc 'messaging.history-set' -> 'messaging-history.set'. ([#1275](https://github.com/iamrony777/Baileys/issues/1275)) ([5255491](https://github.com/iamrony777/Baileys/commit/5255491cb851f8fd1f240beceeed7714ac6e66a2))
+* update fetchLatestWaWebVersion to retrieve client revision from new endpoint ([#1234](https://github.com/iamrony777/Baileys/issues/1234)) ([36690fc](https://github.com/iamrony777/Baileys/commit/36690fc46260c76d95ddcd4912a6ea616696c2d5))
+
+
+### Features
+
+* add Id support for desktop ([#1240](https://github.com/iamrony777/Baileys/issues/1240)) ([89b28a4](https://github.com/iamrony777/Baileys/commit/89b28a438bd95d297ccfdb72a3e385bd59a62a75))
+* add last message in chat.update event if is real message ([#1203](https://github.com/iamrony777/Baileys/issues/1203)) ([ae60f3f](https://github.com/iamrony777/Baileys/commit/ae60f3fe62bb05a97111c5145fa247492f40ddae))
+* add per-jid patching ([e1aadc5](https://github.com/iamrony777/Baileys/commit/e1aadc5546c6bf8ee8c299e4b88b254bcc0cdeaa))
+
+
+
 ## [6.7.9-2](https://github.com/iamrony777/Baileys/compare/v6.7.7-1...v6.7.9-2) (2025-01-06)
 
 
