@@ -39,7 +39,7 @@ export default (config: BaileysInMemoryStoreConfig) => {
 	const socket = config.socket
 	const chatKey = config.chatKey || waChatKey(true)
 	const labelAssociationKey = config.labelAssociationKey || waLabelAssociationKey
-	const logger: Logger = config.logger || DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'in-mem-store' })
+	const logger = DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'in-mem-store' })
 	const KeyedDB = require('@adiwajshing/keyed-db').default
 
 	const chats = new KeyedDB(chatKey, c => c.id) as KeyedDB<Chat, string>
