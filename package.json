@@ -1,16 +1,10 @@
 {
   "name": "@iamrony777/baileys",
-  "version": "6.7.9-2",
+  "version": "6.7.16-1",
   "description": "WhatsApp API",
   "keywords": [
     "whatsapp",
-    "js-whatsapp",
-    "whatsapp-api",
-    "whatsapp-web",
-    "whatsapp-chat",
-    "whatsapp-group",
-    "automation",
-    "multi-device"
+    "automation"
   ],
   "homepage": "https://github.com/iamrony777/Baileys",
   "repository": {
@@ -21,13 +15,14 @@
     "access": "public"
   },
   "license": "MIT",
-  "author": "Adhiraj Singh",
+  "author": "Rajeh Taher",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
     "lib/*",
     "WAProto/*",
-    "WASignalGroup/*.js"
+    "WASignalGroup/*.js",
+    "engine-requirements.js"
   ],
   "scripts": {
     "build:all": "tsc && typedoc",
@@ -43,6 +38,8 @@
     "lint": "eslint src --ext .js,.ts",
     "lint:fix": "yarn lint --fix",
     "prepack": "tsc",
+    "prepare": "tsc",
+    "preinstall": "node ./engine-requirements.js",
     "release": "release-it",
     "test": "jest",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org rony-wp-bot --project baileys ./lib && sentry-cli sourcemaps upload --org rony-wp-bot --project baileys ./lib"
@@ -87,6 +84,8 @@
     "conventional-changelog-cli": "^4.1.0",
     "eslint": "8.0.0",
     "@types/sharp": "^0.29.4",
+    "@cacheable/node-cache": "^1.4.0",
+    "async-mutex": "^0.5.0",
     "jest": "^27.0.6",
     "open": "^9.1.0",
     "prettier": "^2.8.8",
@@ -97,31 +96,38 @@
     "tsx": "^4.7.2",
     "typedoc": "^0.25.3",
     "typescript": "^5.2.2",
-    "jimp": "^0.22.10",
-    "json": "^11.0.0",
-    "link-preview-js": "^3.0.5",
-    "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.32.6"
+    "json": "^11.0.0"
   },
   "peerDependencies": {
     "jimp": "^0.22.10",
     "link-preview-js": "^3.0.5",
     "qrcode-terminal": "^0.12.0",
-    "sharp": "^0.32.6"
+    "open": "^8.4.2",
+    "release-it": "^15.10.3",
+    "sharp": "^0.32.6",
+    "ts-jest": "^27.0.3",
+    "ts-node": "^10.8.1",
+    "typedoc": "^0.27.9",
+    "typedoc-plugin-markdown": "4.4.2",
+    "typescript": "^5.8.2",
+    "audio-decode": "^2.1.5"
   },
   "peerDependenciesMeta": {
+    "audio-decode": {
+      "optional": true
+    },
     "jimp": {
       "optional": true
     },
     "link-preview-js": {
       "optional": true
     },
-    "qrcode-terminal": {
-      "optional": true
-    },
     "sharp": {
       "optional": true
     }
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.19",
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

@@ -26,7 +26,9 @@ import { makeLibSignalRepository } from "../src/Signal/libsignal";
 import MAIN_LOGGER from "../src/Utils/logger";
 const logger = MAIN_LOGGER.child({});
 logger.level = "debug";
-// import makeWASocket, { AnyMessageContent, BinaryInfo, delay, DisconnectReason, downloadAndProcessHistorySyncNotification, encodeWAM, fetchLatestBaileysVersion, getAggregateVotesInPollMessage, getHistoryMsg, isJidNewsletter, makeCacheableSignalKeyStore, makeInMemoryStore, proto, useMultiFileAuthState, WAMessageContent, WAMessageKey } from '../src'
+
+
+// import makeWASocket, { AnyMessageContent, BinaryInfo, delay, DisconnectReason, downloadAndProcessHistorySyncNotification, encodeWAM, fetchLatestBaileysVersion, getAggregateVotesInPollMessage, getHistoryMsg, isJidNewsletter, makeCacheableSignalKeyStore, proto, useMultiFileAuthState, WAMessageContent, WAMessageKey } from '../src'
 //import MAIN_LOGGER from '../src/Utils/logger'
 import open from 'open'
 import P from 'pino'
@@ -48,8 +50,8 @@ if (process.env.SENTRY_DSN) {
 }
 
 const useStore = !process.argv.includes("--no-store");
-const doReplies = !process.argv.includes("--no-reply");
-const usePairingCode = process.argv.includes("--use-pairing-code");
+const doReplies = process.argv.includes('--do-reply')
+const usePairingCode = process.argv.includes('--use-pairing-code')
 const useMobile = process.argv.includes("--mobile");
 
 
@@ -66,15 +68,6 @@ const rl = readline.createInterface({
 });
 const question = (text: string) =>
 	new Promise<string>((resolve) => rl.question(text, resolve));
-
-// the store maintains the data of the WA connection in memory
-// can be written out to a file & read from it
-// const store = useStore ? makeInMemoryStore({ logger }) : undefined
-// store?.readFromFile('./baileys_store_multi.json')
-// // // // // save every 10s
-// setInterval(() => {
-// 	store?.writeToFile('./baileys_store_multi.json')
-// }, 10_000)
 
 // start a connection
 
@@ -161,7 +154,8 @@ const startSock = async () => {
 		// 	})
 		// },
 	});
-	store?.bind(sock.ev);
+	// store?.bind(sock.ev);
+	// })
 
 	// Pairing code for Web clients
 	if (usePairingCode && !sock.authState.creds.registered) {
@@ -204,7 +198,6 @@ const startSock = async () => {
 						startSock();
 					}
 				}
-
 				// WARNING: THIS WILL SEND A WAM EXAMPLE AND THIS IS A ****CAPTURED MESSAGE.****
 				// DO NOT ACTUALLY ENABLE THIS UNLESS YOU MODIFIED THE FILE.JSON!!!!!
 				// THE ANALYTICS IN THE FILE ARE OLD. DO NOT USE THEM.
@@ -212,32 +205,28 @@ const startSock = async () => {
 				// THIS FILE.JSON APPROACH IS JUST AN APPROACH I USED, BE FREE TO DO THIS IN ANOTHER WAY.
 				// THE FIRST EVENT CONTAINS THE CONSTANT GLOBALS, EXCEPT THE seqenceNumber(in the event) and commitTime
 				// THIS INCLUDES STUFF LIKE ocVersion WHICH IS CRUCIAL FOR THE PREVENTION OF THE WARNING
-				// const sendWAMExample = false;
-				// if (connection === "open" && sendWAMExample) {
-				// 	/// sending WAM EXAMPLE
-				// 	const {
-				// 		header: { wamVersion, eventSequenceNumber },
-				// 		events,
-				// 	} = JSON.parse(
-				// 		await fs.promises.readFile("./boot_analytics_test.json", "utf-8")
-				// 	);
+				const sendWAMExample = false;
+				if (connection === "open" && sendWAMExample) {
+					/// sending WAM EXAMPLE
+					const {
+						header: { wamVersion, eventSequenceNumber },
+						events,
+					} = JSON.parse(
+						await fs.promises.readFile("./boot_analytics_test.json", "utf-8")
+					);
 
-				// 	const binaryInfo = new BinaryInfo({
-				// 		protocolVersion: wamVersion,
-				// 		sequence: eventSequenceNumber,
-				// 		events: events,
-				// 	});
+					const binaryInfo = new BinaryInfo({
+						protocolVersion: wamVersion,
+						sequence: eventSequenceNumber,
+						events: events,
+					});
 
-				// 	const buffer = encodeWAM(binaryInfo);
+					const buffer = encodeWAM(binaryInfo);
 
-				// 	const result = await sock.sendWAMBuffer(buffer);
-				// 	console.log(result);
-				// }
-
-				// await sock.sendPresenceUpdate("paused", jid);
-
-				// await sock.sendMessage(jid, msg);
-
+					const result = await sock.sendWAMBuffer(buffer)
+					console.log(result)
+				}
+				
 				console.log("connection update", update);
 			}
 
@@ -293,11 +282,11 @@ const startSock = async () => {
 								  {}
 								)
 
-								
+
 								const chatId = onDemandMap.get(
 									historySyncNotification!.peerDataRequestSessionId!
 								)
-								
+
 								console.log(messages)
 
 							  onDemandMap.delete(
@@ -325,8 +314,8 @@ const startSock = async () => {
 								msg.message?.conversation ||
 								msg.message?.extendedTextMessage?.text;
 							if (text == "requestPlaceholder" && !upsert.requestId) {
-								const messageId = await sock.requestPlaceholderResend(msg.key);
-								console.log("requested placeholder resync, id=", messageId);
+								const messageId = await sock.requestPlaceholderResend(msg.key)
+								console.log('requested placeholder resync, id=', messageId)
 							} else if (upsert.requestId) {
 								console.log(
 									"Message received from phone, id=",
@@ -337,12 +326,8 @@ const startSock = async () => {
 
 							// go to an old chat and send this
 							if (text == "onDemandHistSync") {
-								const messageId = await sock.fetchMessageHistory(
-									50,
-									msg.key,
-									msg.messageTimestamp!
-								);
-								console.log("requested on-demand sync, id=", messageId);
+								const messageId = await sock.fetchMessageHistory(50, msg.key, msg.messageTimestamp!)
+								console.log('requested on-demand sync, id=', messageId)
 							}
 						}
 
@@ -366,10 +351,10 @@ const startSock = async () => {
 			if (events["messages.update"]) {
 				console.log(JSON.stringify(events["messages.update"], undefined, 2));
 
-				for (const { key, update } of events["messages.update"]) {
-					if (update.pollUpdates) {
-						const pollCreation = await getMessage(key);
-						if (pollCreation) {
+				for(const { key, update } of events['messages.update']) {
+					if(update.pollUpdates) {
+						const pollCreation: proto.IMessage = {} // get the poll creation message somehow
+						if(pollCreation) {
 							console.log(
 								"got poll update, aggregation: ",
 								getAggregateVotesInPollMessage({
