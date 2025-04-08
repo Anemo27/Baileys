@@ -5,7 +5,7 @@ import NodeCache from "node-cache";
 import readline from "readline";
 import "dotenv/config";
 import makeWASocket, {
-	AnyMessageContent,
+	type AnyMessageContent,
 	BinaryInfo,
 	Browsers,
 	delay,
@@ -18,8 +18,8 @@ import makeWASocket, {
 	proto,
 	useMongoDBAuthState, // mongo auth
 	useRedisAuthState, // redis auth
-	WAMessageContent,
-	WAMessageKey,
+	type WAMessageContent,
+	type WAMessageKey,
 	isJidNewsletter,
 } from "../src";
 import { makeLibSignalRepository } from "../src/Signal/libsignal";
