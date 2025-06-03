@@ -1,10 +1,22 @@
 {
   "name": "@iamrony777/baileys",
-  "version": "6.7.18-1",
+  "version": "6.7.18",
   "description": "A WebSockets library for interacting with WhatsApp Web",
   "keywords": [
     "whatsapp",
-     "baileys", "whatsapp-api", "mongodb", "redis", "automation", "store", "auth", "new", "nodejs", "typescript", "multi-device", "WhatsApp-web", "javascript"
+    "baileys",
+    "whatsapp-api",
+    "mongodb",
+    "redis",
+    "automation",
+    "store",
+    "auth",
+    "new",
+    "nodejs",
+    "typescript",
+    "multi-device",
+    "WhatsApp-web",
+    "javascript"
   ],
   "homepage": "https://github.com/iamrony777/Baileys",
   "repository": {

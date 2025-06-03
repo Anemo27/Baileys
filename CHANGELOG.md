@@ -1,3 +1,22 @@
+## [6.7.18](https://github.com/iamrony777/Baileys/compare/v6.7.17-1...v6.7.18) (2025-06-03)
+
+
+### Bug Fixes
+
+* allow media upload retries ([f58a38f](https://github.com/iamrony777/Baileys/commit/f58a38fde96297858f372b5abdbb75bc92c438db))
+* content being undefined ([e3078f3](https://github.com/iamrony777/Baileys/commit/e3078f30c8a476fe642e57c1fb8453da11b704ac))
+* failed to send message to self, add checks for empty strings and invalid nodes ([#1322](https://github.com/iamrony777/Baileys/issues/1322)) ([bca5102](https://github.com/iamrony777/Baileys/commit/bca51028197a1cd3c57ec60d48156923d0977cca))
+* lint ([131aead](https://github.com/iamrony777/Baileys/commit/131aeadd45065512bd0b2d420673d605f209c373))
+* makeCacheableSignalKeyStore logger optional ([#1332](https://github.com/iamrony777/Baileys/issues/1332)) ([ae5a7d1](https://github.com/iamrony777/Baileys/commit/ae5a7d14c3b492b3e5543eed26e3655d33341548))
+* memory blow on large files sending through URL ([bff86ed](https://github.com/iamrony777/Baileys/commit/bff86ed4c1fec3f42ed46e6ccbdead378f4107b6))
+* proper send receipt to Meta Ia trigger messages to avoid offline pending notifications hang ([36456d6](https://github.com/iamrony777/Baileys/commit/36456d6db68e20c234265bbc1ef8cc5b085daba4))
+* readAdJid domainType ([47540e9](https://github.com/iamrony777/Baileys/commit/47540e961ed1530b3fa2b46847258fdaceacce5b))
+* send message to LID addressing_mode groups ([53d6e3a](https://github.com/iamrony777/Baileys/commit/53d6e3a8d5d8b141b2c806a09ba59ae50957f6f5))
+* send message to lid groups ([a4338fa](https://github.com/iamrony777/Baileys/commit/a4338fac12a54a36890845c99abd56e92b88cdf6))
+* simplify domainType ([f4dc41e](https://github.com/iamrony777/Baileys/commit/f4dc41eda10b01e638c85d434a9db4822467ee0d))
+
+
+
 ## [6.7.17-1](https://github.com/iamrony777/Baileys/compare/v6.7.17-0...v6.7.17-1) (2025-04-08)
 
 
