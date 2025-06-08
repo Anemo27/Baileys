@@ -1,3 +1,7 @@
+## [6.7.19-0](https://github.com/iamrony777/Baileys/compare/v6.7.18...v6.7.19-0) (2025-06-08)
+
+
+
 ## [6.7.18](https://github.com/iamrony777/Baileys/compare/v6.7.17-1...v6.7.18) (2025-06-03)
 
 
