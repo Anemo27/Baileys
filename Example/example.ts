@@ -1,8 +1,8 @@
-import { Boom } from "@hapi/boom";
-import fs from "fs";
+import type { Boom } from "@hapi/boom";
+import fs from "node:fs";
 import { MongoClient } from "mongodb";
 import NodeCache from "node-cache";
-import readline from "readline";
+import readline from "node:readline";
 import "dotenv/config";
 import makeWASocket, {
 	type AnyMessageContent,
@@ -24,14 +24,14 @@ import makeWASocket, {
 } from "../src";
 import { makeLibSignalRepository } from "../src/Signal/libsignal";
 import MAIN_LOGGER from "../src/Utils/logger";
+import qrcode from "qrcode-terminal";
 const logger = MAIN_LOGGER.child({});
 logger.level = "debug";
 
-
 // import makeWASocket, { AnyMessageContent, BinaryInfo, delay, DisconnectReason, downloadAndProcessHistorySyncNotification, encodeWAM, fetchLatestBaileysVersion, getAggregateVotesInPollMessage, getHistoryMsg, isJidNewsletter, makeCacheableSignalKeyStore, proto, useMultiFileAuthState, WAMessageContent, WAMessageKey } from '../src'
 //import MAIN_LOGGER from '../src/Utils/logger'
-import open from 'open'
-import P from 'pino'
+import open from "open";
+import P from "pino";
 
 import * as Sentry from "@sentry/node";
 import { ProfilingIntegration } from "@sentry/profiling-node";
@@ -50,10 +50,9 @@ if (process.env.SENTRY_DSN) {
 }
 
 const useStore = !process.argv.includes("--no-store");
-const doReplies = process.argv.includes('--do-reply')
-const usePairingCode = process.argv.includes('--use-pairing-code')
+const doReplies = process.argv.includes("--do-reply");
+const usePairingCode = process.argv.includes("--use-pairing-code");
 const useMobile = process.argv.includes("--mobile");
-
 
 // external map to store retry counts of messages when decryption/encryption fails
 // keep this out of the socket itself, so as to prevent a message decryption/encryption loop across socket restarts
@@ -83,29 +82,30 @@ const startSock = async () => {
 		waitQueueTimeoutMS: 1_00_000,
 	});
 	await mongoClient.connect();
-	// const { state, saveCreds, removeCreds } = await useMongoDBAuthState(
-	//   mongoClient.db("whatsapp-sessions").collection("client")
-	// );
+	const { state, saveCreds, removeCreds } = await useMongoDBAuthState(
+		mongoClient.db("whatsapp-sessions").collection("client")
+	);
 	const store = useStore
 		? makeMongoStore({
-				filterChats: true,
-				logger,
-				db: mongoClient.db("whatsapp-sessions"),
-				// autoDeleteStatusMessage: {
-				//   cronTime: "*/1 * * * *",
-				//   timeZone: "Asia/Kolkata",
-				// },
-				autoDeleteStatusMessage: true,
-		  })
+			filterChats: true,
+			logger,
+			db: mongoClient.db("whatsapp-sessions"),
+			// autoDeleteStatusMessage: {
+			//   cronTime: "*/1 * * * *",
+			//   timeZone: "Asia/Kolkata",
+			// },
+			autoDeleteStatusMessage: true,
+
+		})
 		: undefined;
 	// Use Redis to store auth info, and multiauthstore to store other data
-	const url = new URL(process.env.REDIS_URL!);
-	const client = createClient({
-		url: url.href,
-		database: url.protocol === "rediss:" ? 0 : 1,
-	});
-	await client.connect();
-	const { state, saveCreds, removeCreds } = await useRedisAuthState(client);
+	// const url = new URL(process.env.REDIS_URL!);
+	// const client = createClient({
+	// 	url: url.href,
+	// 	database: url.protocol === "rediss:" ? 0 : 1,
+	// });
+	// await client.connect();
+	// const { state, saveCreds, removeCreds } = await useRedisAuthState(client);
 	// const store = useStore
 	// 	? makeRedisStore({ logger, redis: client })
 	// 	: undefined
@@ -115,10 +115,10 @@ const startSock = async () => {
 	// }, 60 * 1000)
 
 	async function getMessage(
-		key: WAMessageKey
+		key: WAMessageKey,
 	): Promise<WAMessageContent | undefined> {
-		if (store) {
-			const msg = await store.loadMessage(key.remoteJid!, key.id!);
+		if (store && key.id && key.remoteJid) {
+			const msg = await store.loadMessage(key.remoteJid, key.id);
 			return msg?.message || undefined;
 		}
 
@@ -130,7 +130,7 @@ const startSock = async () => {
 		defaultQueryTimeoutMs: undefined,
 		logger,
 		browser: Browsers.baileys("desktop"),
-		printQRInTerminal: !usePairingCode,
+		// printQRInTerminal: !usePairingCode,
 		auth: {
 			creds: state.creds,
 			/** caching makes the store faster to send/recv messages */
@@ -144,30 +144,30 @@ const startSock = async () => {
 		// shouldIgnoreJid: jid => isJidBroadcast(jid),
 		// implement to handle retries & poll updates
 		shouldSyncHistoryMessage: () => true,
-		syncFullHistory: false,
+		syncFullHistory: true,
+		
 		getMessage,
-		// makeSignalRepository: () => {
-		// 	return makeLibSignalRepository({
-		// 		creds: state.creds,
-		// 		/** caching makes the store faster to send/recv messages */
-		// 		keys: makeCacheableSignalKeyStore(state.keys, logger),
-		// 	})
-		// },
+		makeSignalRepository: () => {
+			return makeLibSignalRepository({
+				creds: state.creds,
+				/** caching makes the store faster to send/recv messages */
+				keys: makeCacheableSignalKeyStore(state.keys, logger),
+			})
+		},
 	});
-	// store?.bind(sock.ev);
-	// })
+	store?.bind(sock.ev);
 
 	// Pairing code for Web clients
 	if (usePairingCode && !sock.authState.creds.registered) {
 		// todo move to QR event
-		const phoneNumber = await question('Please enter your phone number:\n')
-		const code = await sock.requestPairingCode(phoneNumber)
-		console.log(`Pairing code: ${code}`)
+		const phoneNumber = await question("Please enter your phone number:\n");
+		const code = await sock.requestPairingCode(phoneNumber);
+		console.log(`Pairing code: ${code}`);
 	}
 
-	const sendMessageWTyping = async(msg: AnyMessageContent, jid: string) => {
-		await sock.presenceSubscribe(jid)
-		await delay(500)
+	const sendMessageWTyping = async (msg: AnyMessageContent, jid: string) => {
+		await sock.presenceSubscribe(jid);
+		await delay(500);
 
 		await sock.sendPresenceUpdate("paused", jid);
 
@@ -184,6 +184,15 @@ const startSock = async () => {
 			if (events["connection.update"]) {
 				const update = events["connection.update"];
 				const { connection, lastDisconnect } = update;
+
+				if (update.qr) {
+					// print the QR code to the terminal
+					qrcode.generate(update.qr, { small: true }, (qr) => {
+						console.log("QR received, scan it with your phone");
+						console.log(qr);
+					});
+				}
+
 				if (connection === "close") {
 					// reconnect if not logged out
 					if (
@@ -212,7 +221,7 @@ const startSock = async () => {
 						header: { wamVersion, eventSequenceNumber },
 						events,
 					} = JSON.parse(
-						await fs.promises.readFile("./boot_analytics_test.json", "utf-8")
+						await fs.promises.readFile("./boot_analytics_test.json", "utf-8"),
 					);
 
 					const binaryInfo = new BinaryInfo({
@@ -223,10 +232,10 @@ const startSock = async () => {
 
 					const buffer = encodeWAM(binaryInfo);
 
-					const result = await sock.sendWAMBuffer(buffer)
-					console.log(result)
+					const result = await sock.sendWAMBuffer(buffer);
+					console.log(result);
 				}
-				
+
 				console.log("connection update", update);
 			}
 
@@ -255,7 +264,7 @@ const startSock = async () => {
 					console.log("received on-demand history sync, messages=", messages);
 				}
 				console.log(
-					`recv ${chats.length} chats, ${contacts.length} contacts, ${messages.length} msgs (is latest: ${isLatest}, progress: ${progress}%), type: ${syncType}`
+					`recv ${chats.length} chats, ${contacts.length} contacts, ${messages.length} msgs (is latest: ${isLatest}, progress: ${progress}%), type: ${syncType}`,
 				);
 			}
 
@@ -313,34 +322,39 @@ const startSock = async () => {
 							const text =
 								msg.message?.conversation ||
 								msg.message?.extendedTextMessage?.text;
-							if (text == "requestPlaceholder" && !upsert.requestId) {
-								const messageId = await sock.requestPlaceholderResend(msg.key)
-								console.log('requested placeholder resync, id=', messageId)
+							if (text === "requestPlaceholder" && !upsert.requestId) {
+								const messageId = await sock.requestPlaceholderResend(msg.key);
+								console.log("requested placeholder resync, id=", messageId);
 							} else if (upsert.requestId) {
 								console.log(
 									"Message received from phone, id=",
 									upsert.requestId,
-									msg
+									msg,
 								);
 							}
 
 							// go to an old chat and send this
-							if (text == "onDemandHistSync") {
-								const messageId = await sock.fetchMessageHistory(50, msg.key, msg.messageTimestamp!)
-								console.log('requested on-demand sync, id=', messageId)
+							if (text === "onDemandHistSync" && msg.messageTimestamp) {
+								const messageId = await sock.fetchMessageHistory(
+									50,
+									msg.key,
+									msg.messageTimestamp,
+								);
+								console.log("requested on-demand sync, id=", messageId);
 							}
 						}
 
 						if (
 							!msg.key.fromMe &&
 							doReplies &&
-							!isJidNewsletter(msg.key?.remoteJid!)
+							msg.key?.remoteJid &&
+							!isJidNewsletter(msg.key?.remoteJid)
 						) {
 							console.log("replying to", msg.key.remoteJid);
-							await sock!.readMessages([msg.key]);
+							await sock.readMessages([msg.key]);
 							await sendMessageWTyping(
 								{ text: "Hello there!" },
-								msg.key.remoteJid!
+								msg.key.remoteJid,
 							);
 						}
 					}
@@ -351,16 +365,16 @@ const startSock = async () => {
 			if (events["messages.update"]) {
 				console.log(JSON.stringify(events["messages.update"], undefined, 2));
 
-				for(const { key, update } of events['messages.update']) {
-					if(update.pollUpdates) {
-						const pollCreation: proto.IMessage = {} // get the poll creation message somehow
-						if(pollCreation) {
+				for (const { key, update } of events["messages.update"]) {
+					if (update.pollUpdates) {
+						const pollCreation: proto.IMessage = {}; // get the poll creation message somehow
+						if (pollCreation) {
 							console.log(
 								"got poll update, aggregation: ",
 								getAggregateVotesInPollMessage({
 									message: pollCreation,
 									pollUpdates: update.pollUpdates,
-								})
+								}),
 							);
 						}
 					}
@@ -385,10 +399,10 @@ const startSock = async () => {
 
 			if (events["contacts.update"]) {
 				for (const update of events["contacts.update"]) {
-					if (update.imgUrl === "changed") {
-						const contact = await store?.getContactInfo(update.id!, sock);
+					if (update.imgUrl === "changed" && update.id) {
+						const contact = await store?.getContactInfo(update.id, sock);
 						console.log(
-							`contact ${contact?.name} ${contact?.id} has a new profile pic: ${contact?.imgUrl}`
+							`contact ${contact?.name} ${contact?.id} has a new profile pic: ${contact?.imgUrl}`,
 						);
 					}
 				}
@@ -397,7 +411,7 @@ const startSock = async () => {
 			if (events["chats.delete"]) {
 				console.log("chats deleted ", events["chats.delete"]);
 			}
-		}
+		},
 	);
 
 	return sock;
