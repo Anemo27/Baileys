@@ -1,3 +1,12 @@
+## [6.7.19-1](https://github.com/iamrony777/Baileys/compare/v6.7.19-0...v6.7.19-1) (2025-06-15)
+
+
+### Bug Fixes
+
+* readme ([d034232](https://github.com/iamrony777/Baileys/commit/d034232f2562dbaeec9b7eb6521eadcb87efbbfe))
+
+
+
 ## [6.7.19-0](https://github.com/iamrony777/Baileys/compare/v6.7.18...v6.7.19-0) (2025-06-08)
 
 
