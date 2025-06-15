@@ -82,9 +82,23 @@ const startSock = async () => {
 		waitQueueTimeoutMS: 1_00_000,
 	});
 	await mongoClient.connect();
-	const { state, saveCreds, removeCreds } = await useMongoDBAuthState(
-		mongoClient.db("whatsapp-sessions").collection("client")
-	);
+
+	// // or use redis to store auth info
+	const url = new URL(process.env.REDIS_URL!);
+	const client = createClient({
+		url: url.href,
+		database: url.protocol === "rediss:" ? 0 : 1,
+	});
+	await client.connect();
+
+
+	// // get props from redis
+	const { state, saveCreds, removeCreds } = await useRedisAuthState(client);
+
+	// // get props from mongodb
+	// const { state, saveCreds, removeCreds } = await useMongoDBAuthState(
+	// 	mongoClient.db("whatsapp-sessions").collection("client")
+	// );
 	const store = useStore
 		? makeMongoStore({
 			filterChats: true,
@@ -99,13 +113,7 @@ const startSock = async () => {
 		})
 		: undefined;
 	// Use Redis to store auth info, and multiauthstore to store other data
-	// const url = new URL(process.env.REDIS_URL!);
-	// const client = createClient({
-	// 	url: url.href,
-	// 	database: url.protocol === "rediss:" ? 0 : 1,
-	// });
-	// await client.connect();
-	// const { state, saveCreds, removeCreds } = await useRedisAuthState(client);
+
 	// const store = useStore
 	// 	? makeRedisStore({ logger, redis: client })
 	// 	: undefined
