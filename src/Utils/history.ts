@@ -18,7 +18,7 @@ export const downloadHistory = async (msg: proto.Message.IHistorySyncNotificatio
 		bufferArray.push(chunk)
 	}
 
-	let buffer = Buffer.concat(bufferArray)
+	let buffer = Buffer.concat(bufferArray) as unknown as Uint8Array
 
 	// decompress buffer @ts-ignore
 	buffer = await inflatePromise(buffer)
