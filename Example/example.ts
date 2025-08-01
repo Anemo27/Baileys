@@ -308,28 +308,23 @@ const startSock = async () => {
 								)
 
 
-								const chatId = onDemandMap.get(
-									historySyncNotification!.peerDataRequestSessionId!
-								)
 
-								console.log(messages)
+        if (upsert.type === 'notify') {
+          for (const msg of upsert.messages) {
+            if (msg.message?.conversation || msg.message?.extendedTextMessage?.text) {
+              const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text
+              if (text == "requestPlaceholder" && !upsert.requestId) {
+                const messageId = await sock.requestPlaceholderResend(msg.key)
+                console.log('requested placeholder resync, id=', messageId)
+              }
 
-							  onDemandMap.delete(
-								historySyncNotification!.peerDataRequestSessionId!
-							  )
+              // go to an old chat and send this
+              if (text == "onDemandHistSync") {
+                const messageId = await sock.fetchMessageHistory(50, msg.key, msg.messageTimestamp!)
+                console.log('requested on-demand sync, id=', messageId)
+              }
 
-							  /*
-								// 50 messages is the limit imposed by whatsapp
-								//TODO: Add ratelimit of 7200 seconds
-								//TODO: Max retries 10
-								const messageId = await sock.fetchMessageHistory(
-									50,
-									oldestMessageKey,
-									oldestMessageTimestamp
-								)
-								onDemandMap.set(messageId, chatId)
-							}
-						  } */
+              if (!msg.key.fromMe && doReplies && !isJidNewsletter(msg.key?.remoteJid!)) {
 
 						if (
 							msg.message?.conversation ||
