@@ -136,7 +136,7 @@ export async function hkdf(
 	const salt = info.salt ? new Uint8Array(info.salt) : new Uint8Array(0)
 	const infoBytes = info.info ? new TextEncoder().encode(info.info) : new Uint8Array(0)
 
-	// Import the input key material
+	// Import the input key material @ts-ignore
 	const importedKey = await subtle.importKey('raw', inputKeyMaterial, { name: 'HKDF' }, false, ['deriveBits'])
 
 	// Derive bits using HKDF
