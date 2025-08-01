@@ -130,7 +130,7 @@ const startSock = async () => {
 			return msg?.message || undefined;
 		}
 
-		// only if store is present
+		// only if store is not present
 		return proto.Message.fromObject({});
 	}
 	const sock = makeWASocket({
@@ -153,7 +153,7 @@ const startSock = async () => {
 		// implement to handle retries & poll updates
 		shouldSyncHistoryMessage: () => true,
 		syncFullHistory: true,
-		
+
 		getMessage,
 		makeSignalRepository: () => {
 			return makeLibSignalRepository({
@@ -244,6 +244,14 @@ const startSock = async () => {
 					console.log(result);
 				}
 
+				if (connection === 'open' && sock?.user?.id) {
+					await sendMessageWTyping(
+						{ text: "Baileys is online!" },
+						sock.user.id,
+					);
+				}
+
+
 				console.log("connection update", update);
 			}
 
@@ -330,6 +338,9 @@ const startSock = async () => {
 							const text =
 								msg.message?.conversation ||
 								msg.message?.extendedTextMessage?.text;
+
+							const remoteJid = msg.key?.remoteJid;
+
 							if (text === "requestPlaceholder" && !upsert.requestId) {
 								const messageId = await sock.requestPlaceholderResend(msg.key);
 								console.log("requested placeholder resync, id=", messageId);
@@ -349,6 +360,14 @@ const startSock = async () => {
 									msg.messageTimestamp,
 								);
 								console.log("requested on-demand sync, id=", messageId);
+							}
+
+							
+							if (text === "test:msg" && remoteJid) {
+								console.log("sending message to", remoteJid);
+								await sock.readMessages([msg.key]);
+								await sock.sendMessage(remoteJid, { text: "Hello there!" });
+								console.log("sent message to", remoteJid);
 							}
 						}
 
