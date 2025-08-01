@@ -1,6 +1,6 @@
-import { caching, Store } from 'cache-manager'
+import { caching, type Store } from 'cache-manager'
 import { proto } from '../../WAProto'
-import { AuthenticationCreds } from '../Types'
+import { type AuthenticationCreds } from '../Types'
 import { BufferJSON, initAuthCreds } from '../Utils'
 import logger from '../Utils/logger'
 
@@ -64,7 +64,7 @@ const makeCacheManagerAuthState = async(store: Store, sessionKey: string) => {
 			creds,
 			keys: {
 				get: async(type: string, ids: string[]) => {
-					const data = {}
+					const data: Record<string, proto.Message.AppStateSyncKeyData | AuthenticationCreds | null> = {}
 					await Promise.all(
 						ids.map(async(id) => {
 							let value: proto.Message.AppStateSyncKeyData | AuthenticationCreds | null =
@@ -79,7 +79,7 @@ const makeCacheManagerAuthState = async(store: Store, sessionKey: string) => {
 
 					return data
 				},
-				set: async(data) => {
+				set: async(data: Record<string, Record<string, proto.Message.AppStateSyncKeyData | AuthenticationCreds | null>>) => {
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					const tasks: Promise<any>[] = []
 					for(const category in data) {

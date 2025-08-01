@@ -68,8 +68,8 @@ function makeOrderedDictionary<T>(idGetter: (item: T) => string) {
 		filter: (contain: (item: T) => boolean) => {
 			let i = 0
 			while(i < array.length) {
-				if(!contain(array[i])) {
-					delete dict[idGetter(array[i])]
+				if(!contain(array[i] as T)) {
+					delete dict[idGetter(array[i] as T)]
 					array.splice(i, 1)
 				} else {
 					i += 1

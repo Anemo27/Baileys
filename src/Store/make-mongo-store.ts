@@ -18,7 +18,7 @@ import type {
 	WAMessageKey
 } from '../Types'
 import type { Label } from '../Types/Label'
-import { type LabelAssociation, LabelAssociationType, type MessageLabelAssociation } from '../Types/LabelAssociation'
+import { type ChatLabelAssociation, type LabelAssociation, LabelAssociationType, type MessageLabelAssociation } from '../Types/LabelAssociation'
 import { md5, toNumber, updateMessageWithReaction, updateMessageWithReceipt } from '../Utils'
 import { jidNormalizedUser } from '../WABinary'
 import makeOrderedDictionary from './make-ordered-dictionary'
@@ -503,7 +503,7 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 				const list = messages[item.jid]
 				list?.clear()
 			} else {
-				const jid = item.keys[0].remoteJid!
+				const jid = item.keys[0]?.remoteJid as string
 				const list = messages[jid]
 				if (list) {
 					const idSet = new Set(item.keys.map(k => k.id))
@@ -599,7 +599,7 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 		labelsUpsert(Object.values(json.labels || {}))
 		for (const jid in json.messages) {
 			const list = assertMessageList(jid)
-			for (const msg of json.messages[jid]) {
+			for (const msg of json.messages[jid] || []) {
 				list.upsert(proto.WebMessageInfo.fromObject(msg), 'append')
 			}
 		}
@@ -676,7 +676,7 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 		 * @returns Label IDs
 		 **/
 		getMessageLabels: async (messageId: string) => {
-			const associations = labelAssociations.find((la: MessageLabelAssociation) => la.messageId === messageId)
+			const associations = labelAssociations.find((la: MessageLabelAssociation | ChatLabelAssociation) => 'messageId' in la ? la.messageId === messageId : la.chatId === messageId)
 
 			return associations?.map(({ labelId }) => labelId)
 		},
@@ -695,7 +695,7 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 		mostRecentMessage: async (jid: string) => {
 			const message: WAMessage | undefined =
 				messages[jid]?.array.slice(-1)[0] ||
-				(await chats.findOne({ id: jid }, { projection: { _id: 0 } }))?.messages?.slice(-1)[0].message ||
+				(await chats.findOne({ id: jid }, { projection: { _id: 0 } }))?.messages?.slice(-1)[0]?.message ||
 				undefined
 			return message
 		},

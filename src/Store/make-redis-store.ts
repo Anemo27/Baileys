@@ -1,5 +1,5 @@
 // dumb hack
-import type KeyedDB from '@adiwajshing/keyed-db'
+import KeyedDB from '@adiwajshing/keyed-db'
 import type { Comparable } from '@adiwajshing/keyed-db/lib/Types'
 import type { Logger } from 'pino'
 import { createClient } from 'redis'
@@ -17,11 +17,12 @@ import type {
 	WAMessageCursor,
 	WAMessageKey,
 } from '../Types'
-import { Label } from '../Types/Label'
+import { type Label } from '../Types/Label'
 import {
-	LabelAssociation,
+	type ChatLabelAssociation,
+	type LabelAssociation,
 	LabelAssociationType,
-	MessageLabelAssociation,
+	type MessageLabelAssociation,
 } from '../Types/LabelAssociation'
 import {
 	BufferJSON,
@@ -114,7 +115,6 @@ export default ({
 	suffix = suffix || 'store'
 	const logger =
 		_logger || DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'redis:store' })
-	const KeyedDB = require('@adiwajshing/keyed-db').default
 
 	const chats = new KeyedDB(chatKey, (c) => c.id) as KeyedDB<Chat, string>
 	const messages: { [_: string]: ReturnType<typeof makeMessagesDictionary> } =
@@ -212,8 +212,8 @@ export default ({
 
 		ev.on('contacts.update', (updates) => {
 			for(const update of updates) {
-				if(contacts[update.id!]) {
-					Object.assign(contacts[update.id!], update)
+				if(update.id && contacts[update.id]) {
+					Object.assign(contacts[update.id] as Contact, update)
 				} else {
 					logger.debug({ update }, 'got update for non-existant contact')
 				}
@@ -326,7 +326,7 @@ export default ({
 				const list = messages[item.jid]
 				list?.clear()
 			} else {
-				const jid = item.keys[0].remoteJid!
+				const jid = item.keys[0]?.remoteJid as string
 				const list = messages[jid]
 				if(list) {
 					const idSet = new Set(item.keys.map((k) => k.id))
@@ -419,7 +419,7 @@ export default ({
 		labelsUpsert(Object.values(json.labels || {}))
 		for(const jid in json.messages) {
 			const list = assertMessageList(jid)
-			for(const msg of json.messages[jid]) {
+			for(const msg of json.messages[jid] || []) {
 				list.upsert(proto.WebMessageInfo.fromObject(msg), 'append')
 			}
 		}
@@ -500,7 +500,7 @@ export default ({
 		 **/
 		getMessageLabels: (messageId: string) => {
 			const associations = labelAssociations
-				.filter((la: MessageLabelAssociation) => la.messageId === messageId)
+				.filter((la: MessageLabelAssociation | ChatLabelAssociation) => 'messageId' in la ? la.messageId === messageId : la.chatId === messageId)
 				.all()
 
 			return associations.map(({ labelId }) => labelId)
@@ -585,11 +585,11 @@ export default ({
 					break
 
 				case 'messages':
-					for(const msgKey of Object.keys(data)) {
+					for(const msgKey of Object.keys(data as unknown as Record<string, WAMessage[]>)) {
 						await redis.hSet(
 							suffixKey,
 							msgKey,
-							JSON.stringify(data[msgKey], BufferJSON.replacer)
+							JSON.stringify(data[msgKey as keyof typeof data], BufferJSON.replacer)
 						)
 					}
 
@@ -620,8 +620,9 @@ export default ({
 
 			const readObjectFromDb = async(key: string) => {
 				const tempObj = await redis.hGetAll(`${key}:${suffix}`)
-				const parsedObj = Object.keys(tempObj).map((id) => JSON.parse(tempObj[id], BufferJSON.reviver)
+				const parsedObj = Object.keys(tempObj).map((id) => JSON.parse(tempObj[id] as string	, BufferJSON.reviver)
 				)
+				// @ts-ignore
 				jsonObject[key] = parsedObj
 			}
 
@@ -630,6 +631,7 @@ export default ({
 					(await redis.get(`${key}:${suffix}`)) || '[]',
 					BufferJSON.reviver
 				)
+				// @ts-ignore
 				jsonObject[key] = parsedArray
 			}
 

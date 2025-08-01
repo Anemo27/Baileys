@@ -1,12 +1,12 @@
-import type KeyedDB from '@adiwajshing/keyed-db'
+import KeyedDB from '@adiwajshing/keyed-db'
 import type { Comparable } from '@adiwajshing/keyed-db/lib/Types'
 import type { Logger } from 'pino'
 import { proto } from '../../WAProto'
 import { DEFAULT_CONNECTION_CONFIG } from '../Defaults'
 import type makeMDSocket from '../Socket'
 import type { BaileysEventEmitter, Chat, ConnectionState, Contact, GroupMetadata, PresenceData, WAMessage, WAMessageCursor, WAMessageKey } from '../Types'
-import { Label } from '../Types/Label'
-import { LabelAssociation, LabelAssociationType, MessageLabelAssociation } from '../Types/LabelAssociation'
+import { type Label } from '../Types/Label'
+import { type ChatLabelAssociation, type LabelAssociation, LabelAssociationType, type MessageLabelAssociation } from '../Types/LabelAssociation'
 import { md5, toNumber, updateMessageWithReaction, updateMessageWithReceipt } from '../Utils'
 import { jidDecode, jidNormalizedUser } from '../WABinary'
 import makeOrderedDictionary from './make-ordered-dictionary'
@@ -40,7 +40,6 @@ export default (config: BaileysInMemoryStoreConfig) => {
 	const chatKey = config.chatKey || waChatKey(true)
 	const labelAssociationKey = config.labelAssociationKey || waLabelAssociationKey
 	const logger = DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'in-mem-store' })
-	const KeyedDB = require('@adiwajshing/keyed-db').default
 
 	const chats = new KeyedDB(chatKey, c => c.id) as KeyedDB<Chat, string>
 	const messages: { [_: string]: ReturnType<typeof makeMessagesDictionary> } = {}
@@ -136,15 +135,15 @@ export default (config: BaileysInMemoryStoreConfig) => {
 
 		ev.on('contacts.update', async updates => {
 			for(const update of updates) {
-				let contact: Contact
-				if(contacts[update.id!]) {
-					contact = contacts[update.id!]
+				let contact: Contact 
+				if(update.id && contacts[update.id]) {
+					contact = contacts[update.id] as Contact
 				} else {
 					const contactHashes = await Promise.all(Object.keys(contacts).map(async contactId => {
 						const { user } = jidDecode(contactId)!
 						return [contactId, (await md5(Buffer.from(user + 'WA_ADD_NOTIF', 'utf8'))).toString('base64').slice(0, 3)]
 					}))
-					contact = contacts[contactHashes.find(([, b]) => b === update.id)?.[0] || ''] // find contact by attrs.hash, when user is not saved as a contact
+					contact = contacts[contactHashes.find(([, b]) => b === update.id)?.[0] || ''] as Contact // find contact by attrs.hash, when user is not saved as a contact
 				}
 
 				if(contact) {
@@ -157,7 +156,9 @@ export default (config: BaileysInMemoryStoreConfig) => {
 					return logger.debug({ update }, 'got update for non-existant contact')
 				}
 
-				Object.assign(contacts[contact.id], contact)
+				if (contact?.id) {
+					Object.assign(contacts[contact.id] as Contact, contact)
+				}
 			}
 		})
 		ev.on('chats.upsert', newChats => {
@@ -262,7 +263,7 @@ export default (config: BaileysInMemoryStoreConfig) => {
 				const list = messages[item.jid]
 				list?.clear()
 			} else {
-				const jid = item.keys[0].remoteJid!
+				const jid = item.keys[0]?.remoteJid as string
 				const list = messages[jid]
 				if(list) {
 					const idSet = new Set(item.keys.map(k => k.id))
@@ -341,7 +342,7 @@ export default (config: BaileysInMemoryStoreConfig) => {
 		labelsUpsert(Object.values(json.labels || {}))
 		for(const jid in json.messages) {
 			const list = assertMessageList(jid)
-			for(const msg of json.messages[jid]) {
+			for(const msg of json.messages[jid] || []) {
 				list.upsert(proto.WebMessageInfo.fromObject(msg), 'append')
 			}
 		}
@@ -410,7 +411,7 @@ export default (config: BaileysInMemoryStoreConfig) => {
 		 **/
 		getMessageLabels: (messageId: string) => {
 			const associations = labelAssociations
-				.filter((la: MessageLabelAssociation) => la.messageId === messageId)
+				.filter((la: MessageLabelAssociation | ChatLabelAssociation) => 'messageId' in la ? la.messageId === messageId : la.chatId === messageId)
 				.all()
 
 			return associations.map(({ labelId }) => labelId)

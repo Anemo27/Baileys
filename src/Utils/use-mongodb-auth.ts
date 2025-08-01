@@ -2,9 +2,9 @@ import type { Collection } from 'mongodb'
 import type { Logger } from 'pino'
 import { proto } from '../../WAProto'
 import {
-	AuthenticationCreds,
-	AuthenticationState,
-	SignalDataTypeMap,
+	type AuthenticationCreds,
+	type AuthenticationState,
+	type SignalDataTypeMap,
 } from '../Types'
 import { initAuthCreds } from './auth-utils'
 import { BufferJSON } from './generics'
@@ -64,10 +64,10 @@ export const useMongoDBAuthState = async(
 					logger?.debug({ data }, 'setting data')
 					const tasks: Promise<void>[] = []
 					for(const category in data) {
-						for(const id in data[category]) {
-							const value = data[category][id]
+						for(const id in data[category as keyof typeof data]) {
+							const value = data[category as keyof typeof data]?.[id]
 							const key = `${category}-${id}`
-							tasks.push(value ? writeData(key, value) : removeData(key))
+							tasks.push(value ? writeData(key, value as AuthenticationCreds) : removeData(key))
 						}
 					}
 

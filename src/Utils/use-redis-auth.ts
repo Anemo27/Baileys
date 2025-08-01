@@ -7,9 +7,9 @@ import type { Logger } from 'pino'
 import { createClient } from 'redis'
 import { proto } from '../../WAProto'
 import {
-	AuthenticationCreds,
-	AuthenticationState,
-	SignalDataTypeMap,
+	type AuthenticationCreds,
+	type AuthenticationState,
+	type SignalDataTypeMap,
 } from '../Types'
 import { initAuthCreds } from './auth-utils'
 import { BufferJSON } from './generics'
@@ -67,8 +67,8 @@ export const useRedisAuthState = async(
 					logger?.debug({ data }, 'setting data')
 					const tasks: Promise<void|number>[] = []
 					for(const category in data) {
-						for(const id in data[category]) {
-							const value = data[category][id]
+						for(const id in data[category as keyof typeof data]) {
+							const value = data[category as keyof typeof data]?.[id]
 							const key = `${category}-${id}`
 							tasks.push(
 								value
