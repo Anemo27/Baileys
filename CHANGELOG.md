@@ -1,3 +1,31 @@
+## [6.7.19-2](https://github.com/iamrony777/Baileys/compare/v6.7.19-1...v6.7.19-2) (2025-08-01)
+
+
+### Bug Fixes
+
+* add lid sutff to message.key type ([#1586](https://github.com/iamrony777/Baileys/issues/1586)) ([9b5afc8](https://github.com/iamrony777/Baileys/commit/9b5afc8c6b4c7ec7ebe240285f728144c4490d1c))
+* build scripts for windows ([#1616](https://github.com/iamrony777/Baileys/issues/1616)) ([3ba5595](https://github.com/iamrony777/Baileys/commit/3ba5595d5b554e76d2129f9aedb0e0b012eb3867))
+* Connection error when add @ at start of your name ([#1536](https://github.com/iamrony777/Baileys/issues/1536)) ([8b6ea34](https://github.com/iamrony777/Baileys/commit/8b6ea34b0721250807760f35d95d619b27a81006))
+* correct spelling errors in README.md ([#1541](https://github.com/iamrony777/Baileys/issues/1541)) ([89b51e4](https://github.com/iamrony777/Baileys/commit/89b51e404088a770ff7affb745b902234985531e))
+* correcting if logic for contextInfo ([#1628](https://github.com/iamrony777/Baileys/issues/1628)) ([#1629](https://github.com/iamrony777/Baileys/issues/1629)) ([cdd2f0d](https://github.com/iamrony777/Baileys/commit/cdd2f0d53f1a7e95404617ea0325bc71614c052e))
+* do not throw error on socket closed while opening ([#1576](https://github.com/iamrony777/Baileys/issues/1576)) ([4ccec1f](https://github.com/iamrony777/Baileys/commit/4ccec1f6cec44a870b8dcfee1786b6670a123bee))
+* Handle data: URIs in getStream to prevent server crash ([#1524](https://github.com/iamrony777/Baileys/issues/1524)) ([92b4c68](https://github.com/iamrony777/Baileys/commit/92b4c68de0d1e640108d7d840e080c069e975bf6))
+* handle potential null values when creating Buffers from signing keys ([#1558](https://github.com/iamrony777/Baileys/issues/1558)) ([210338c](https://github.com/iamrony777/Baileys/commit/210338c74732ffafd31c67727e88d9c5b7dc80c0))
+* handle string format for signing keys in SenderKeyState ([#1552](https://github.com/iamrony777/Baileys/issues/1552)) ([38b4ada](https://github.com/iamrony777/Baileys/commit/38b4ada9971ba81444f031b9cb1dccc2e3735874))
+* reading qr code with hosted connection ([#1520](https://github.com/iamrony777/Baileys/issues/1520)) ([e2ce275](https://github.com/iamrony777/Baileys/commit/e2ce275949b3acca70cc1b9e5fe35916d7fdc532))
+* remove chat attribute deletions in history.ts ([#1590](https://github.com/iamrony777/Baileys/issues/1590)) ([34188a3](https://github.com/iamrony777/Baileys/commit/34188a3a22f060cdbb38af6dc960c3d519c742ac))
+* remove static jimp import ([#1592](https://github.com/iamrony777/Baileys/issues/1592)) ([31cb8d7](https://github.com/iamrony777/Baileys/commit/31cb8d78a67031f2702156dcca3c878c636ba969))
+* validate media URL before downloading content from message ([#1560](https://github.com/iamrony777/Baileys/issues/1560)) ([591c98f](https://github.com/iamrony777/Baileys/commit/591c98f3e6b3985379e0dd0db968d896953a1ef1))
+
+
+### Features
+
+* add lid to message key ([#1510](https://github.com/iamrony777/Baileys/issues/1510)) ([6b4dce8](https://github.com/iamrony777/Baileys/commit/6b4dce897db1776309c7e3d0042a1dd06987e4d9))
+* community support ([#1157](https://github.com/iamrony777/Baileys/issues/1157)) ([0c20166](https://github.com/iamrony777/Baileys/commit/0c20166a45fde4581e190f3a6bf638faa28c612f))
+* extra metadata on groupMetadata ([#1374](https://github.com/iamrony777/Baileys/issues/1374)) ([99bbafe](https://github.com/iamrony777/Baileys/commit/99bbafeae51d660534450ff30b223548171ba273))
+
+
+
 ## [6.7.19-1](https://github.com/iamrony777/Baileys/compare/v6.7.19-0...v6.7.19-1) (2025-06-15)
 
 
@@ -697,6 +725,8 @@
 * Revert "temp: do not handle dirty account_sync" ([56139b2](https://github.com/iamrony777/Baileys/commit/56139b2d0300cca388aff57459283a1c76f58ee3))
 * Revert "chore: disable init queries" ([b3e8b38](https://github.com/iamrony777/Baileys/commit/b3e8b38917fa86a0621832ecf743746675d22f62))
 * Revert "chore: add WS ping" ([c4ffb2b](https://github.com/iamrony777/Baileys/commit/c4ffb2bfaf4184dcdcfeabdf3b147b0a9e3d4cd2))
+* Revert "feat: resync main app state on first open" ([2cc5cc2](https://github.com/iamrony777/Baileys/commit/2cc5cc2dd4424b4aeed700f62b4b59e6a3e3856e))
+* Revert "fix: remove redundant collectionSync" ([85574d1](https://github.com/iamrony777/Baileys/commit/85574d1d795f32f75f98dfd9ef52242960c68f2b))
 
 
 
