@@ -3,6 +3,7 @@ import { CronJob } from 'cron'
 import moment from 'moment-timezone'
 import type { Db } from 'mongodb'
 import type { Logger } from 'pino'
+import { calculateObjectSize } from 'bson'
 import { proto } from '../../WAProto'
 import { DEFAULT_CONNECTION_CONFIG } from '../Defaults'
 import type makeMDSocket from '../Socket'
@@ -23,7 +24,8 @@ import { md5, toNumber, updateMessageWithReaction, updateMessageWithReceipt } fr
 import { jidNormalizedUser } from '../WABinary'
 import makeOrderedDictionary from './make-ordered-dictionary'
 import { ObjectRepository } from './object-repository'
-
+ 
+ 
 type WASocket = ReturnType<typeof makeMDSocket>
 
 export const waChatKey = (pin: boolean) => ({
@@ -194,6 +196,24 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 	const logger = _logger || DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'mongo-store' })
 
 	logger.debug('initializing mongo store')
+
+	// MongoDB document size limits
+	const MAX_BSON_DOCUMENT_SIZE_BYTES = 16 * 1024 * 1024 // 16MB
+	const WARN_BSON_DOCUMENT_SIZE_BYTES = 15 * 1024 * 1024 // 15MB
+
+	// Estimate BSON document size using BSON calculation for accuracy,
+	// with JSON byte-length fallback in case of unexpected serialization issues.
+	const approximateDocumentSizeBytes = (doc: unknown): number => {
+		try {
+			return calculateObjectSize(doc as object, { ignoreUndefined: true })
+		} catch {
+			try {
+				return Buffer.byteLength(JSON.stringify(doc), 'utf8')
+			} catch {
+				return MAX_BSON_DOCUMENT_SIZE_BYTES
+			}
+		}
+	}
 	const chats = db.collection<Chat>('chats')
 	const messages: { [_: string]: ReturnType<typeof makeMessagesDictionary> } = {}
 	const contacts = db.collection<Contact>('contacts')
@@ -468,10 +488,28 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 										unreadCount: 1
 									}
 								])
-							} else {
-								chat.messages ? chat.messages.push({ message: msg }) : (chat.messages = [{ message: msg }])
-								await chats.updateOne({ id: jid }, { $set: chat }, { upsert: true })
-							}
+								} else {
+									chat.messages ? chat.messages.push({ message: msg }) : (chat.messages = [{ message: msg }])
+									const sizeBytes = approximateDocumentSizeBytes(chat)
+									if (sizeBytes >= MAX_BSON_DOCUMENT_SIZE_BYTES) {
+										// Revert the push to avoid persisting an oversized document
+										chat.messages?.pop()
+										logger?.error(
+											{ jid, sizeBytes },
+											'refusing to update chat; document would exceed MongoDB 16MB limit'
+										)
+										continue
+									}
+
+									if (sizeBytes >= WARN_BSON_DOCUMENT_SIZE_BYTES) {
+										logger?.warn(
+											{ jid, sizeBytes },
+											'chat document size approaching MongoDB 16MB limit'
+										)
+									}
+
+									await chats.updateOne({ id: jid }, { $set: chat }, { upsert: true })
+								}
 						}
 					}
 
@@ -615,6 +653,17 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 		return await chats.findOne({ id: jid }, { projection: { _id: 0 } })
 	}
 
+	/**
+	 * Calculates approximate BSON size in bytes for a chat document.
+	 * Note: This is an estimate based on JSON byte length and may differ
+	 * slightly from actual BSON size used by MongoDB.
+	 */
+	const getChatSizeBytes = async (jid: string): Promise<number> => {
+		// include _id in the calculation to reflect actual stored document size
+		const chat = await chats.findOne({ id: jid })
+		return chat ? approximateDocumentSizeBytes(chat) : 0
+	}
+
 	return {
 		chats,
 		contacts,
@@ -747,6 +796,7 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 			return msg?.userReceipt
 		},
 		getChatById,
+		getChatSizeBytes,
 		toJSON,
 		fromJSON
 	}
