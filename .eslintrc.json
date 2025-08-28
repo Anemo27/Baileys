@@ -15,12 +15,12 @@
 				"ignoreRestArgs": true
 			}
 		],
-		"@typescript-eslint/no-inferrable-types": ["warn"],
-		"@typescript-eslint/no-redundant-type-constituents": ["warn"],
-		"@typescript-eslint/no-unnecessary-type-assertion": ["warn"],
+		"@typescript-eslint/no-inferrable-types": "warn",
+		"@typescript-eslint/no-redundant-type-constituents": "warn",
+		"@typescript-eslint/no-unnecessary-type-assertion": "warn",
 		"no-restricted-syntax": "off",
 		"keyword-spacing": "off",
-		"implicit-arrow-linebreak": ["off"],
+		"implicit-arrow-linebreak": "off",
 		"space-before-function-paren": [
 			"error",
 			{

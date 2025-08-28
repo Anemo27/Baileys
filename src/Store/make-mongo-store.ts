@@ -19,13 +19,17 @@ import type {
 	WAMessageKey
 } from '../Types'
 import type { Label } from '../Types/Label'
-import { type ChatLabelAssociation, type LabelAssociation, LabelAssociationType, type MessageLabelAssociation } from '../Types/LabelAssociation'
+import {
+	type ChatLabelAssociation,
+	type LabelAssociation,
+	LabelAssociationType,
+	type MessageLabelAssociation
+} from '../Types/LabelAssociation'
 import { md5, toNumber, updateMessageWithReaction, updateMessageWithReceipt } from '../Utils'
 import { jidNormalizedUser } from '../WABinary'
 import makeOrderedDictionary from './make-ordered-dictionary'
 import { ObjectRepository } from './object-repository'
- 
- 
+
 type WASocket = ReturnType<typeof makeMDSocket>
 
 export const waChatKey = (pin: boolean) => ({
@@ -488,28 +492,22 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 										unreadCount: 1
 									}
 								])
-								} else {
-									chat.messages ? chat.messages.push({ message: msg }) : (chat.messages = [{ message: msg }])
-									const sizeBytes = approximateDocumentSizeBytes(chat)
-									if (sizeBytes >= MAX_BSON_DOCUMENT_SIZE_BYTES) {
-										// Revert the push to avoid persisting an oversized document
-										chat.messages?.pop()
-										logger?.error(
-											{ jid, sizeBytes },
-											'refusing to update chat; document would exceed MongoDB 16MB limit'
-										)
-										continue
-									}
-
-									if (sizeBytes >= WARN_BSON_DOCUMENT_SIZE_BYTES) {
-										logger?.warn(
-											{ jid, sizeBytes },
-											'chat document size approaching MongoDB 16MB limit'
-										)
-									}
-
-									await chats.updateOne({ id: jid }, { $set: chat }, { upsert: true })
+							} else {
+								chat.messages ? chat.messages.push({ message: msg }) : (chat.messages = [{ message: msg }])
+								const sizeBytes = approximateDocumentSizeBytes(chat)
+								if (sizeBytes >= MAX_BSON_DOCUMENT_SIZE_BYTES) {
+									// Revert the push to avoid persisting an oversized document
+									chat.messages?.pop()
+									logger?.error({ jid, sizeBytes }, 'refusing to update chat; document would exceed MongoDB 16MB limit')
+									continue
 								}
+
+								if (sizeBytes >= WARN_BSON_DOCUMENT_SIZE_BYTES) {
+									logger?.warn({ jid, sizeBytes }, 'chat document size approaching MongoDB 16MB limit')
+								}
+
+								await chats.updateOne({ id: jid }, { $set: chat }, { upsert: true })
+							}
 						}
 					}
 
@@ -725,7 +723,9 @@ export default ({ logger: _logger, socket, db, filterChats, autoDeleteStatusMess
 		 * @returns Label IDs
 		 **/
 		getMessageLabels: async (messageId: string) => {
-			const associations = labelAssociations.find((la: MessageLabelAssociation | ChatLabelAssociation) => 'messageId' in la ? la.messageId === messageId : la.chatId === messageId)
+			const associations = labelAssociations.find((la: MessageLabelAssociation | ChatLabelAssociation) =>
+				'messageId' in la ? la.messageId === messageId : la.chatId === messageId
+			)
 
 			return associations?.map(({ labelId }) => labelId)
 		},

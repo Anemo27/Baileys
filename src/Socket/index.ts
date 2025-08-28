@@ -6,7 +6,7 @@ import { makeCommunitiesSocket } from './communities'
 const makeWASocket = (config: UserFacingSocketConfig) =>
 	makeCommunitiesSocket({
 		...DEFAULT_CONNECTION_CONFIG,
-		...config,
+		...config
 	})
 
 export default makeWASocket

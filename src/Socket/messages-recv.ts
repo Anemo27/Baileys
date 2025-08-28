@@ -315,7 +315,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			case 'demote':
 			case 'remove':
 			case 'add':
-			case 'leave':{
+			case 'leave': {
 				const stubType = `GROUP_PARTICIPANT_${child.tag.toUpperCase()}`
 				msg.messageStubType = WAMessageStubType[stubType as keyof typeof WAMessageStubType]
 
