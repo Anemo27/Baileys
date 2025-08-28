@@ -45,7 +45,7 @@ type MessageType =
 
 /**
  * Decode the received node as a message.
- * @note this will only parse the message, not decrypt it
+ * @remark this will only parse the message, not decrypt it
  */
 export function decodeMessageNode(stanza: BinaryNode, meId: string, meLid: string) {
 	let msgType: MessageType

@@ -323,7 +323,7 @@ export const prepareDisappearingMessageSettingContent = (ephemeralExpiration?: n
 /**
  * Generate forwarded message content like WA does
  * @param message the message to forward
- * @param options.forceForward will show the message as forwarded even if it is from you
+ * @param forceForward will show the message as forwarded even if it is from you
  */
 export const generateForwardMessageContent = (message: WAMessage, forceForward?: boolean) => {
 	let content = message.message

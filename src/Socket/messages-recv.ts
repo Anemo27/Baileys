@@ -113,15 +113,15 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			}
 		}
 
-		if (!!errorCode) {
+		if (errorCode) {
 			stanza.attrs.error = errorCode.toString()
 		}
 
-		if (!!attrs.participant) {
+		if (attrs.participant) {
 			stanza.attrs.participant = attrs.participant
 		}
 
-		if (!!attrs.recipient) {
+		if (attrs.recipient) {
 			stanza.attrs.recipient = attrs.recipient
 		}
 
@@ -305,16 +305,17 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 					}
 				}
 				break
-			case 'modify':
+			case 'modify': {
 				const oldNumber = getBinaryNodeChildren(child, 'participant').map(p => p.attrs.jid!)
 				msg.messageStubParameters = oldNumber || []
 				msg.messageStubType = WAMessageStubType.GROUP_PARTICIPANT_CHANGE_NUMBER
 				break
+			}
 			case 'promote':
 			case 'demote':
 			case 'remove':
 			case 'add':
-			case 'leave':
+			case 'leave':{
 				const stubType = `GROUP_PARTICIPANT_${child.tag.toUpperCase()}`
 				msg.messageStubType = WAMessageStubType[stubType as keyof typeof WAMessageStubType]
 
@@ -331,6 +332,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 
 				msg.messageStubParameters = participants
 				break
+			}
 			case 'subject':
 				msg.messageStubType = WAMessageStubType.GROUP_CHANGE_SUBJECT
 				msg.messageStubParameters = [child.attrs.subject!]
